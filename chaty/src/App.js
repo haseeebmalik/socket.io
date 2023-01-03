@@ -1,0 +1,49 @@
+import { useState,useEffect } from 'react';
+import { nanoid } from 'nanoid';
+import './App.css';
+import io from "socket.io-client"
+const userName=nanoid(4)
+const socket=io.connect("http://localhost:5001")
+function App() {
+  const [message,setMessage]=useState("")
+  const [chat,setChat]=useState([])
+  useEffect(()=>{
+    socket.on("chat",(payload)=>{
+        setChat([...chat,payload])
+    })
+  })
+  const sendChat=(e)=>{
+    e.preventDefault()
+    socket.emit("chat",{message,userName})
+    setMessage('')
+  }
+
+  return (
+    <div className="App">
+      <header className="App-header">
+         <h1>Chatty App </h1>
+         {
+          chat.map((payload,i)=>{
+            return(
+              <p>{payload.message}:<span>id:{payload.userName}</span></p>
+            )
+          })
+         }
+         <form onSubmit={sendChat}>
+          <input 
+           type="text"
+           name="chat"
+           placeholder="send text"
+           value={message}
+           onChange={(e)=>{
+            setMessage(e.target.value)
+           }}
+          />
+          <button type="submit">Send</button>
+         </form>
+      </header>
+    </div>
+  );
+}
+
+export default App;
